@@ -1,0 +1,138 @@
+#part of 100 days of code (Python) by Dr. Anglea Yu on Udemy
+rock = '''
+    _______
+---'   ____)
+      (_____)
+      (_____)
+      (____)
+---.__(___)
+'''
+
+paper = '''
+    _______
+---'   ____)____
+          ______)
+          _______)
+         _______)
+---.__________)
+'''
+
+scissors = '''
+    _______
+---'   ____)____
+          ______)
+       __________)
+      (____)
+---.__(___)
+'''
+import random
+
+def sum_list(list):
+    sum=0
+    for i in list:
+        sum+=i
+    return sum    
+def move(num): 
+    #can use this instead of list rps
+    if num==0:
+        return rock
+    elif num==1:
+        return paper
+    elif num==2:
+        return scissors
+
+rps=[rock, paper, scissors]
+
+print("Welcome to the rock-paper-scissors game! \nScore 10 points before the computer does to win the championship! >:) \n")
+my_score=[]
+my_total_score=0
+computer_score=[]
+computer_total_score=0
+
+while my_total_score<10 and computer_total_score<10:
+    my_move=int(input("Choose 0 for rock, 1 for paper, and 2 for scissors"))
+
+    computer_move=random.randint(0,2)
+    
+    if my_move>2 or my_move<0:
+        print("Invalid Entry!")
+    else:
+        print(f'''Your move:
+        {rps[my_move]}''')
+        print(f'''Computer's move:
+        {rps[computer_move]}''')
+        
+        if my_move==0 and computer_move==2:
+            my_score.append(1)
+            computer_score.append(0)
+            print("Your point!")
+
+        elif my_move==2 and computer_move==0:
+            my_score.append(0)
+            computer_score.append(1)
+            print("Computer's point!")
+            
+        elif my_move==computer_move:
+            my_score.append(0)
+            computer_score.append(0)
+            print("It's a tie!")
+    
+        elif my_move<computer_move:
+            my_score.append(0)
+            computer_score.append(1)
+            print("Computer's point!")
+    
+        elif my_move>computer_move:
+            my_score.append(1)
+            computer_score.append(0)
+            print("Your point!")
+            
+        my_total_score=sum_list(my_score)
+        computer_total_score=sum_list(computer_score)
+        print(f"Your score is {my_total_score} and the computer's score is {computer_total_score}")
+
+if my_total_score>computer_total_score:
+    print("Yay! You win! :)")
+    print('''You deserve this, monarch:
+    
+    o
+                                   $""$o
+                                  $"  $$
+                                   $$$$
+                                   o "$o
+                                  o"  "$
+             oo"$$$"  oo$"$ooo   o$    "$    ooo"$oo  $$$"o
+o o o o    oo"  o"      "o    $$o$"     o o$""  o$      "$  "oo   o o o o
+"$o   ""$$$"   $$         $      "   o   ""    o"         $   "o$$"    o$$
+  ""o       o  $          $"       $$$$$       o          $  ooo     o""
+     "o   $$$$o $o       o$        $$$$$"       $o        " $$$$   o"
+      ""o $$$$o  oo o  o$"         $$$$$"        "o o o o"  "$$$  $
+        "" "$"     """""            ""$"            """      """ "
+         "oooooooooooooooooooooooooooooooooooooooooooooooooooooo$
+          "$$$$"$$$$" $$$$$$$"$$$$$$ " "$$$$$"$$$$$$"  $$$""$$$$
+           $$$oo$$$$   $$$$$$o$$$$$$o" $$$$$$$$$$$$$$ o$$$$o$$$"
+           $"""""""""""""""""""""""""""""""""""""""""""""""""""$
+           $"                                                  o
+           $"$"$"$"$"$"$"$"$"$"$"$"$"$"$"$"$"$"$"$"$"$"$"$"$"$$''')
+else:
+    print("Oh no! Better luck next time... :(")
+    print('''        _  /)
+                 mo / )
+                 |/)\)
+                  /\_
+                  \__|=
+                 (    )
+                 __)(__
+           _____/      \\_____
+          |  _     ___   _   ||
+          | | \     |   | \  ||
+          | |  |    |   |  | ||
+          | |_/     |   |_/  ||
+          | | \     |   |    ||
+          | |  \    |   |    ||
+          | |   \. _|_. | .  ||
+          |                  ||
+          |                  ||
+          |                  ||
+  *       | *   **    * **   |**      **
+   \))ejm97/.,(//,,..,,\||(,,.,\\,.((//''')
