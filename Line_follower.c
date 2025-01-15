@@ -3,12 +3,14 @@
 #include <stdbool.h>
 //take constant values, dma sucks
 //prototyping
+#define EXIT_FAILURE 999
+
 #define SIZE1 180
 #define SIZE2 120
 
 #define ARBITRARY 700
 
-#define LINE 
+#define LINE 4075 
 
 #define NORTH 0
 #define EAST 1
@@ -17,15 +19,13 @@
 
 #define STACKSIZE 80
 
-#define START_X 
+#define START_X //define start and goal coordinates
 
 #define YES 'y'
 #define NO 'n'
 
 /* since this sort of code is more famous for micromouse, it needs to be ported for line follower.
-How to do that? I'm gonna assume that wherever the bot encounters an end of black-line in front = wall
-
-Also, there's probably tons of mistakes that will surface as we edit this -- needs a desperate review*/
+How to do that? I'm gonna assume that wherever the bot encounters an end of black-line in front = wall*/
 
 typedef struct Node {
 	//data fields 
@@ -45,8 +45,19 @@ typedef struct Maze {
 } Maze;
 
 typedef struct Stack {
-	Node *stack[STACKSIZE];	//array of STACKSIZE no. of ptrs
+	Node *stack[STACKSIZE];
+    short top;	//array of STACKSIZE no. of ptrs
 } Stack;
+
+typedef struct IR_Sensor_Data {
+    bool left;       
+    bool right;     
+    bool front;      
+    bool back;       // Optional, in case the robot needs to check behind
+    short detected_color;   
+    int line_position;      // Relative position of the line (e.g., -1: left, 0: center, 1: right)
+    float distance_to_line; // Optional, for analog sensors indicating the distance from the line
+} IR_Sensor_Data;
 
 //func protopypes
 
@@ -67,7 +78,7 @@ short get_nearest_neighbour(Node *node); //to determine next cell with the next 
 Maze *new_Maze();
 void explore_build_maze(Maze *maze, Node *this_node, IR_Sensor_Data sensor_data );
 void delete_maze(Maze **mpp); //is it required?
-void print_maze(const Maze *this_maze); // to check grid, prolly not required
+
 
 //flood fill funcs
 void flood_fill(Node *node, Stack *stack, const short floodfill_flag);
@@ -75,6 +86,46 @@ void update_floodvalue (Node * this_node);
 bool floodvalue_check(Node *this_node);
 
 //Constructing data structures
+
+//Stack
+Stack *new_Stack(){
+    Stack *stack = (Stack *)malloc(sizeof(Stack));
+    if (stack == NULL) {
+        exit(EXIT_FAILURE);
+    }
+    stack->top = -1; //Empty
+    return stack;
+}
+
+void delete_Stack(Stack **spp) {
+    if (spp && *spp) {
+        free(*spp);
+        *spp = NULL;
+    }
+}
+
+int is_empty_Stack(Stack *stack) {
+    return stack->top == -1;
+}
+
+void pop(Stack *stack, Node **npp) {
+    if (is_empty_Stack(stack)) {
+        exit(EXIT_FAILURE);
+    }
+    *npp = stack->stack[stack->top]; 
+    stack->top--;                    
+}
+
+
+void push(Stack *stack, Node *node) {
+    if (stack->top == STACKSIZE - 1) {
+        exit(EXIT_FAILURE);
+    }
+    stack->top++;              
+    stack->stack[stack->top] = node; 
+}
+
+//Nodes
 Node *new_Node(const short x, const short y) 
 {
     Node *this_node = (Node *) malloc(sizeof(Node));
@@ -111,7 +162,6 @@ Maze *new_Maze()
         }
     }
 
-
     //establishing neighbour relations between nodes, because bhaichara baatne se badhta hai. Creating a gridmap of sorts
     for(x = 0; x < SIZE1; x++) {
 		for(y = 0; y < SIZE2; y++) {
@@ -126,7 +176,7 @@ Maze *new_Maze()
     return this_maze;        
 } //maze gridmap is ready with connections
 
-short get_nearest_neighbour (Node * this_node) 
+short get_nearest_neighbour(Node * this_node) 
 {
    short nearest_neighbour = ARBITRARY; //temp value stored
 
@@ -194,6 +244,8 @@ short get_nearest_neighbour_dir(Node * this_node, const short preferred_dir) {
     		break;
 
     }
+
+    //what to do after this? anything else to consider?
 
 
 
@@ -374,4 +426,56 @@ void explore_build_maze(Maze *maze, Node *this_node, IR_Sensor_Data sensor_data 
         set_wall(this_node, WEST);
     }
 
+}
+
+void explore_and_reach_key_patch(Maze *maze, Node *start_node, Node **key_node, bool (*detect_color_patch)())//, sensor ip 
+    {
+        Stack *stack = new_Stack();    // Stack for flood fill
+        Node *current_node = key_node; // Start from the key patch
+        push(stack, current_node);  
+
+    // Update flood values from the key patch to the goal
+        while (!is_empty_Stack(stack)) {
+            pop(stack, &current_node);
+
+            if (floodvalue_check(current_node)) {
+                update_floodvalue(current_node);
+                push_open_neighbors(current_node, stack);
+        }
+    }
+    delete_Stack(&stack);
+} 
+
+//To be determined
+bool detect_color_patch() {
+    // Replace with actual color sensor detection logic
+    return (rand() % 100) < 5; // Random 5% chance for testing
+}
+
+IR_Sensor_Data get_sensor_readings() {
+    IR_Sensor_Data data;
+    // Replace with actual IR sensor reading logic
+    data.front = rand() % 2;
+    data.left = rand() % 2;
+    data.right = rand() % 2;
+    return data;
+}
+
+// Main
+int main() {
+    Maze *maze = new_Maze();
+    Node *start_node = maze->map[0][0];
+    Node *goal_node = maze->map[SIZE2 - 1][SIZE1 - 1];
+    Node *key_node = NULL;
+
+    // Step 1: Explore and find the key patch
+    explore_and_reach_key_patch(maze, start_node, &key_node, detect_color_patch);
+
+    if (key_node != NULL) {
+        // Step 2: Navigate from the key patch to the goal
+        navigate_from_key_to_goal(maze, key_node, goal_node);
+    }
+
+    delete_maze(&maze);
+    return 0;
 }
